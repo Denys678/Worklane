@@ -62,6 +62,9 @@ export async function getProjectMembers(projectId: string, currentUserId: string
         where: {
             userId: currentUserId,
             projectId,
+        },
+        select: {
+            id: true,
         }
     });
 
