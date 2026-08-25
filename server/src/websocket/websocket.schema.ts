@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { email, string } from "zod";
 
 const subscribeProjectSchema = z.strictObject({
     type: z.literal("SUBSCRIBE_PROJECT"),
@@ -59,6 +59,40 @@ const columnMovedEventSchema = z.strictObject({
     }),
 });
 
+const projectMemberAddedEventSchema = z.strictObject({
+    type: z.literal("PROJECT_MEMBER_ADDED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        member: z.strictObject({
+            id: z.string().uuid(),
+            role: z.enum(["MANAGER", "OWNER", "MEMBER"]),
+            joinedAt: z.string().datetime(),
+            user: z.strictObject({
+                id: z.string().uuid(),
+                name: z.string().trim().min(2).max(50),
+                email: z.string().email(),
+            })
+        }),
+    })
+});
+
+const projectMemberUpdatedEventSchema = z.strictObject({
+    type: z.literal("PROJECT_MEMBER_UPDATED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        memberId: z.string().uuid(),
+        role: z.enum(["MANAGER", "OWNER", "MEMBER"]),
+    })
+});
+
+const projectMemberDeletedEventSchema = z.strictObject({
+    type: z.literal("PROJECT_MEMBER_DELETED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        memberId: z.string().uuid(),
+    }),
+});
+
 export const clientMessageSchema = z.discriminatedUnion("type", [
     subscribeProjectSchema,
     unsubscribeProjectSchema,
@@ -70,6 +104,9 @@ export const projectEventSchema = z.discriminatedUnion("type", [
     columnRenamedEventSchema,
     columnDeletedEventSchema,
     columnMovedEventSchema,
+    projectMemberAddedEventSchema,
+    projectMemberUpdatedEventSchema,
+    projectMemberDeletedEventSchema
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>;
