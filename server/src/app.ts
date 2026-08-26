@@ -3,6 +3,7 @@ import authRouter from "./modules/auth/auth.routes.js";
 import projectRouter from "./modules/projects/project.routes.js";
 import memberRouter from "./modules/project-members/project-member.routes.js";
 import columnRouter from "./modules/board-column/board-column.routes.js";
+import taskRouter from "./modules/tasks/task.routes.js";
 import { errorHandler } from "./common/middleware/errorHandler.js";
 
 const app = express();
@@ -22,6 +23,8 @@ app.use("/api/projects", projectRouter);
 app.use("/api/projects", memberRouter);
 
 app.use("/api/projects", columnRouter);
+
+app.use("/api/projects", taskRouter);
 
 app.use(errorHandler);
 
