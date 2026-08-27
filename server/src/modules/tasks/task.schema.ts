@@ -25,6 +25,12 @@ export const updateTaskSchema = z.strictObject({
     },
 );
 
+export const moveTaskSchema = z.strictObject({
+    columnId: z.string().uuid(),
+    position: z.int().nonnegative(),
+});
+
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type TaskIdParams = z.infer<typeof taskIdParamsSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+export type MoveTaskInput = z.infer<typeof moveTaskSchema>;

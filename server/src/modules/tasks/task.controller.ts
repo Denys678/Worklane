@@ -1,7 +1,7 @@
 import type { RequestHandler } from "express";
 import type { ProjectIdParams } from "../projects/project.schema.js";
-import type { CreateTaskInput, TaskIdParams, UpdateTaskInput } from "./task.schema.js";
-import { createTask, deleteProjectTask, getProjectTask, getProjectTasks, updateTask } from "./task.service.js";
+import type { CreateTaskInput, MoveTaskInput, TaskIdParams, UpdateTaskInput } from "./task.schema.js";
+import { createTask, deleteProjectTask, getProjectTask, getProjectTasks, moveTask, updateTask } from "./task.service.js";
 
 export const createTaskController: RequestHandler = async (req, res) => {
     const currentUserId = res.locals.userId;
@@ -56,4 +56,16 @@ export const deleteProjectTaskController: RequestHandler = async (req, res) => {
     await deleteProjectTask(projectId, taskId, currentUserId);
 
     return res.status(204).send();
+}
+
+export const moveTaskController: RequestHandler = async (req, res) => {
+    const currentUserId = res.locals.userId;
+    const {projectId, taskId} = req.params as TaskIdParams;
+    const input = req.body as MoveTaskInput;
+
+    const movedTask = await moveTask(projectId, taskId, currentUserId, input);
+
+    return res.status(200).json({
+        data: movedTask,
+    })
 }

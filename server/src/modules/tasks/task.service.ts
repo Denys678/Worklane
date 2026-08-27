@@ -1,6 +1,6 @@
 import { AppError } from "../../common/errors/AppError.js";
 import prisma from "../../lib/prisma.js";
-import type { CreateTaskInput, UpdateTaskInput } from "./task.schema.js";
+import type { CreateTaskInput, MoveTaskInput, UpdateTaskInput } from "./task.schema.js";
 
 export async function createTask(input: CreateTaskInput, currentUserId: string, projectId: string) {
     const result = await prisma.$transaction(async (tx) => {
@@ -258,5 +258,176 @@ export async function deleteProjectTask(projectId: string, taskId: string, curre
                 },
             },
         });
+    });
+}
+
+export async function moveTask(projectId: string, taskId: string, currentUserId: string, input: MoveTaskInput) {
+    return prisma.$transaction(async (tx) => {
+        const currentMembership = await tx.projectMember.findFirst({
+            where: {
+                userId: currentUserId,
+                projectId,
+            },
+            select: {
+                id: true,
+                role: true,
+            }
+        });
+
+        if (!currentMembership) {
+            throw new AppError({message: "Project not found", statusCode: 404, code: "PROJECT_NOT_FOUND"});
+        }
+
+        const targetTask = await tx.task.findFirst({
+            where: {
+                id: taskId,
+                column: {
+                    projectId,
+                }
+            },
+            select: {
+                id: true,
+                columnId: true,
+                position: true,
+                assignees: {
+                    select: {
+                        projectMemberId: true,
+                    },
+                },
+            },
+        });
+
+        if (!targetTask) {
+            throw new AppError({ message: "Task not found", statusCode: 404, code: "TASK_NOT_FOUND" });
+        }
+
+        if (currentMembership.role === "MEMBER" && !targetTask.assignees.some(
+            (assignee) => assignee.projectMemberId === currentMembership.id
+        )) {
+            throw new AppError({ message: "Forbidden", statusCode: 403, code: "FORBIDDEN" });
+        }
+
+        const targetColumn = await tx.boardColumn.findFirst({
+            where: {
+                id: input.columnId,
+                projectId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!targetColumn) {
+            throw new AppError({ message: "Column not found", statusCode: 404, code: "COLUMN_NOT_FOUND" });
+        }
+
+        if (targetTask.columnId === input.columnId) {
+            const tasksCount = await tx.task.count({
+                where: {
+                    columnId: targetTask.columnId,
+                },
+            });
+
+            if (input.position >= tasksCount) {
+                throw new AppError({ message: "Invalid task position", statusCode: 400, code: "INVALID_TASK_POSITION" });
+            }
+
+            if (targetTask.position === input.position) {
+                return tx.task.findUnique({
+                    where: {
+                        id: targetTask.id,
+                    },
+                });
+            }
+
+            if (targetTask.position < input.position) {
+                await tx.task.updateMany({
+                    where: {
+                        columnId: targetTask.columnId,
+                        position: {
+                            gt: targetTask.position,
+                            lte: input.position,
+                        },
+                    },
+                    data: {
+                        position: {
+                            decrement: 1,
+                        },
+                    },
+                });
+            } else {
+                await tx.task.updateMany({
+                    where: {
+                        columnId: targetTask.columnId,
+                        position: {
+                            gte: input.position,
+                            lt: targetTask.position,
+                        },
+                    },
+                    data: {
+                        position: {
+                            increment: 1,
+                        },
+                    },
+                });
+            }
+
+            return tx.task.update({
+                where: {
+                    id: targetTask.id,
+                },
+                data: {
+                    position: input.position,
+                },
+            });
+        } else {
+            const targetColumnTasksCount = await tx.task.count({
+                where: {
+                    columnId: input.columnId,
+                },
+            });
+
+            if (input.position > targetColumnTasksCount) {
+                throw new AppError({ message: "Invalid task position", statusCode: 400, code: "INVALID_TASK_POSITION" });
+            }
+
+            await tx.task.updateMany({
+                where: {
+                    columnId: targetTask.columnId,
+                    position: {
+                        gt: targetTask.position,
+                    },
+                },
+                data: {
+                    position: {
+                        decrement: 1,
+                    },
+                },
+            });
+
+            await tx.task.updateMany({
+                where: {
+                    columnId: input.columnId,
+                    position: {
+                        gte: input.position,
+                    },
+                },
+                data: {
+                    position: {
+                        increment: 1,
+                    },
+                },
+            });
+
+            return tx.task.update({
+                where: {
+                    id: targetTask.id,
+                },
+                data: {
+                    columnId: input.columnId,
+                    position: input.position,
+                },
+            });
+        }
     });
 }
