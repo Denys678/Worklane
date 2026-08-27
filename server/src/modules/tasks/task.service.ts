@@ -333,7 +333,7 @@ export async function moveTask(projectId: string, taskId: string, currentUserId:
             }
 
             if (targetTask.position === input.position) {
-                return tx.task.findUnique({
+                return tx.task.findUniqueOrThrow({
                     where: {
                         id: targetTask.id,
                     },
