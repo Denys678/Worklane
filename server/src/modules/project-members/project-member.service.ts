@@ -19,7 +19,7 @@ export async function addProjectMember(input: AddProjectMemberInput, projectId: 
     });
 
     if (!project) {
-        throw new AppError({message: "Project not found", statusCode: 404, code: "PROJECT_NOT_FOUND"});
+        throw new AppError({ message: "Project not found", statusCode: 404, code: "PROJECT_NOT_FOUND" });
     }
 
     const user = await prisma.user.findUnique({
@@ -32,7 +32,7 @@ export async function addProjectMember(input: AddProjectMemberInput, projectId: 
     });
 
     if (!user) {
-        throw new AppError({message: "User not found", statusCode: 404, code: "USER_NOT_FOUND"});
+        throw new AppError({ message: "User not found", statusCode: 404, code: "USER_NOT_FOUND" });
     }
 
     const existingMember = await prisma.projectMember.findFirst({
@@ -43,7 +43,7 @@ export async function addProjectMember(input: AddProjectMemberInput, projectId: 
     });
 
     if (existingMember) {
-        throw new AppError({message: "User is already a project member", statusCode: 409, code: "PROJECT_MEMBER_ALREADY_EXISTS"});
+        throw new AppError({ message: "User is already a project member", statusCode: 409, code: "PROJECT_MEMBER_ALREADY_EXISTS" });
     }
 
     const newMember = await prisma.projectMember.create({
@@ -51,6 +51,18 @@ export async function addProjectMember(input: AddProjectMemberInput, projectId: 
             projectId,
             userId: user.id,
             role: input.role,
+        },
+        select: {
+            id: true,
+            role: true,
+            joinedAt: true,
+            user: {
+                select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                },
+            },
         }
     });
 
@@ -69,7 +81,7 @@ export async function getProjectMembers(projectId: string, currentUserId: string
     });
 
     if (!currentMembership) {
-        throw new AppError({message: "Project not found", statusCode: 404, code: "PROJECT_NOT_FOUND"});
+        throw new AppError({ message: "Project not found", statusCode: 404, code: "PROJECT_NOT_FOUND" });
     }
 
     const projectMembers = await prisma.projectMember.findMany({

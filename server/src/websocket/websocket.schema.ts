@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { email, positive, string } from "zod";
 
 const subscribeProjectSchema = z.strictObject({
     type: z.literal("SUBSCRIBE_PROJECT"),
@@ -59,6 +59,86 @@ const columnMovedEventSchema = z.strictObject({
     }),
 });
 
+const projectMemberAddedEventSchema = z.strictObject({
+    type: z.literal("PROJECT_MEMBER_ADDED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        member: z.strictObject({
+            id: z.string().uuid(),
+            role: z.enum(["MANAGER", "OWNER", "MEMBER"]),
+            joinedAt: z.string().datetime(),
+            user: z.strictObject({
+                id: z.string().uuid(),
+                name: z.string().trim().min(2).max(50),
+                email: z.string().email(),
+            })
+        }),
+    })
+});
+
+const projectMemberUpdatedEventSchema = z.strictObject({
+    type: z.literal("PROJECT_MEMBER_UPDATED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        memberId: z.string().uuid(),
+        role: z.enum(["MANAGER", "OWNER", "MEMBER"]),
+    })
+});
+
+const projectMemberDeletedEventSchema = z.strictObject({
+    type: z.literal("PROJECT_MEMBER_DELETED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        memberId: z.string().uuid(),
+    }),
+});
+
+const taskEventDataSchema = z.strictObject({
+    id: z.string().uuid(),
+    title: z.string().trim().min(2).max(50),
+    description: z.string().max(500).nullable(),
+    priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+    dueDate: z.string().datetime().nullable(),
+    columnId: z.string().uuid(),
+    position: z.int().nonnegative(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+});
+
+const taskCreatedEventSchema = z.strictObject({
+    type: z.literal("TASK_CREATED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        task: taskEventDataSchema,
+    }),
+});
+
+const taskUpdatedEventSchema = z.strictObject({
+    type: z.literal("TASK_UPDATED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        task: taskEventDataSchema,
+    }),
+});
+
+const taskDeletedEventSchema = z.strictObject({
+    type: z.literal("TASK_DELETED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        taskId: z.string().uuid(),
+    })
+});
+
+const taskMovedEventSchema = z.strictObject({
+    type: z.literal("TASK_MOVED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        taskId: z.string().uuid(),
+        columnId: z.string().uuid(),
+        position: z.int().nonnegative(),
+    }),
+});
+
 export const clientMessageSchema = z.discriminatedUnion("type", [
     subscribeProjectSchema,
     unsubscribeProjectSchema,
@@ -70,6 +150,13 @@ export const projectEventSchema = z.discriminatedUnion("type", [
     columnRenamedEventSchema,
     columnDeletedEventSchema,
     columnMovedEventSchema,
+    projectMemberAddedEventSchema,
+    projectMemberUpdatedEventSchema,
+    projectMemberDeletedEventSchema,
+    taskCreatedEventSchema,
+    taskUpdatedEventSchema,
+    taskDeletedEventSchema,
+    taskMovedEventSchema,
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>;
