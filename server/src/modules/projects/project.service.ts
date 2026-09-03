@@ -55,7 +55,7 @@ export async function getProjectById(projectId: string, userId: string) {
     });
 
     if (!project) {
-        throw new AppError({message: "Project wasn't found", statusCode: 404, code: "PROJECT_NOT_FOUND"});
+        throw new AppError({message: "Project not found", statusCode: 404, code: "PROJECT_NOT_FOUND"});
     }
 
     return project;
