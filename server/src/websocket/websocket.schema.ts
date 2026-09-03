@@ -139,6 +139,25 @@ const taskMovedEventSchema = z.strictObject({
     }),
 });
 
+const taskAssigneeAddedEventSchema = z.strictObject({
+    type: z.literal("TASK_ASSIGNEE_ADDED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        taskId: z.string().uuid(),
+        projectMemberId: z.string().uuid(),
+        assignedAt: z.string().datetime(),
+    })
+});
+
+const taskAssigneeDeletedEventSchema = z.strictObject({
+    type: z.literal("TASK_ASSIGNEE_DELETED"),
+    payload: z.strictObject({
+        projectId: z.string().uuid(),
+        taskId: z.string().uuid(),
+        projectMemberId: z.string().uuid(),
+    })
+});
+
 export const clientMessageSchema = z.discriminatedUnion("type", [
     subscribeProjectSchema,
     unsubscribeProjectSchema,
@@ -157,6 +176,8 @@ export const projectEventSchema = z.discriminatedUnion("type", [
     taskUpdatedEventSchema,
     taskDeletedEventSchema,
     taskMovedEventSchema,
+    taskAssigneeAddedEventSchema,
+    taskAssigneeDeletedEventSchema,
 ]);
 
 export type ClientMessage = z.infer<typeof clientMessageSchema>;
