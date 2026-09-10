@@ -3,6 +3,8 @@ import prisma from "../../lib/prisma.js";
 import { AppError } from "../../common/errors/AppError.js";
 import type { LoginInput, RegisterInput } from "./auth.schema.js";
 import { generateAccessToken } from "../../common/utils/jwt.js";
+import { hashRefreshToken } from "../../common/utils/refreshToken.js";
+import { createRefreshSession, refreshSession } from "./refreshToken.service.js";
 
 export async function registerUser(input: RegisterInput) {
     const existingUser = await prisma.user.findUnique({
@@ -63,6 +65,7 @@ export async function loginUser(input: LoginInput) {
     }
 
     const accessToken = await generateAccessToken(user.id);
+    const refreshToken = await createRefreshSession(user.id);
 
     return {
         user: {
@@ -72,6 +75,7 @@ export async function loginUser(input: LoginInput) {
             createdAt: user.createdAt,
         },
         accessToken,
+        refreshToken,
     }
 }
 
@@ -93,4 +97,24 @@ export async function getCurrentUser(userId: string) {
     }
 
     return user;
+}
+
+export async function refreshAccessToken(rawToken: string) {
+    const userId = await refreshSession(rawToken);
+
+    const tokenHash = hashRefreshToken(rawToken);
+
+    await prisma.refreshToken.delete({
+        where: {
+            tokenHash,
+        },
+    });
+
+    const refreshToken = await createRefreshSession(userId);
+    const accessToken = await generateAccessToken(userId);
+
+    return {
+        accessToken,
+        refreshToken,
+    };
 }

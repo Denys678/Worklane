@@ -25,6 +25,13 @@ export const updateTaskSchema = z.strictObject({
     },
 );
 
+export const taskQuerySchema = z.strictObject({
+    search: z.string().trim().min(1).max(200).optional(),
+    priority: z.enum(["LOW", "MEDIUM", "HIGH"]).optional(),
+    columnId: z.string().uuid().optional(),
+    projectMemberId: z.string().uuid().optional(),
+});
+
 export const moveTaskSchema = z.strictObject({
     columnId: z.string().uuid(),
     position: z.int().nonnegative(),
@@ -34,3 +41,4 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type TaskIdParams = z.infer<typeof taskIdParamsSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
 export type MoveTaskInput = z.infer<typeof moveTaskSchema>;
+export type TaskQueryInput = z.infer<typeof taskQuerySchema>;

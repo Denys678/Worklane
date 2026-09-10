@@ -1,6 +1,7 @@
 import type { RequestHandler } from "express";
 import type { LoginInput, RegisterInput } from "./auth.schema.js";
-import { getCurrentUser, loginUser, registerUser } from "./auth.service.js";
+import { getCurrentUser, loginUser, refreshAccessToken, registerUser } from "./auth.service.js";
+import { AppError } from "../../common/errors/AppError.js";
 
 export const registerController: RequestHandler = async (req, res) => {
     const data = req.body as RegisterInput;
@@ -15,11 +16,13 @@ export const registerController: RequestHandler = async (req, res) => {
 export const loginController: RequestHandler = async (req, res) => {
     const data = req.body as LoginInput;
 
-    const loginResult = await loginUser(data);
+    const { refreshToken, ...responseData } = await loginUser(data);
+
+    res.cookie("refreshToken", refreshToken, {httpOnly: true, secure: false, sameSite: "lax", maxAge: 30 * 24 * 60 * 60 * 1000, path: "/api/auth"});
 
     return res.status(200).json({
-        data: loginResult,
-    })
+        data: responseData,
+    });
 }
 
 export const getCurrentUserController: RequestHandler = async (_req, res) => {
@@ -30,4 +33,22 @@ export const getCurrentUserController: RequestHandler = async (_req, res) => {
     return res.status(200).json({
         data: user,
     })
-} 
+}
+
+export const refreshController: RequestHandler = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        throw new AppError({ message: "Invalid refresh token", statusCode: 401, code: "INVALID_REFRESH_TOKEN" });
+    }
+
+    const { accessToken, refreshToken: newRefreshToken } = await refreshAccessToken(refreshToken);
+
+    res.cookie("refreshToken", newRefreshToken, { httpOnly: true, secure: false, sameSite: "lax", maxAge: 30 * 24 * 60 * 60 * 1000, path: "/api/auth"});
+
+    return res.status(200).json({
+        data: {
+            accessToken,
+        },
+    });
+}

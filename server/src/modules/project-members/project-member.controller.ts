@@ -2,7 +2,7 @@ import type { RequestHandler } from "express";
 import { addProjectMember, deleteProjectMember, getProjectMembers, updateProjectMemberRole } from "./project-member.service.js";
 import type { ProjectIdParams } from "../projects/project.schema.js";
 import { ProjectMemberParams } from "./project-member.schema.js";
-import { broadcastToProject } from "../../websocket/websocket.rooms.js";
+import { broadcastToProject, removeUserFromProjectRoom } from "../../websocket/websocket.rooms.js";
 
 export const addProjectMemberController: RequestHandler = async (req, res) => {
     const { projectId } = req.params as ProjectIdParams;
@@ -65,7 +65,7 @@ export const deleteProjectMemberController: RequestHandler = async (req, res) =>
     const { projectId, memberId } = req.params as ProjectMemberParams;
     const currentUserId = res.locals.userId;
     
-    await deleteProjectMember(currentUserId, memberId, projectId);
+    const deletedUserId = await deleteProjectMember(currentUserId, memberId, projectId);
 
     broadcastToProject(projectId, {
         type: "PROJECT_MEMBER_DELETED",
@@ -74,6 +74,8 @@ export const deleteProjectMemberController: RequestHandler = async (req, res) =>
             memberId,
         }
     });
+
+    removeUserFromProjectRoom(projectId, deletedUserId);
 
     return res.status(204).send();
 }

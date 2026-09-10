@@ -5,11 +5,15 @@ import memberRouter from "./modules/project-members/project-member.routes.js";
 import columnRouter from "./modules/board-column/board-column.routes.js";
 import taskRouter from "./modules/tasks/task.routes.js";
 import taskAssigneeRouter from "./modules/taskAssignees/taskAssignees.routes.js";
+import boardRouter from "./modules/board/board.route.js";
+import cookieParser from "cookie-parser";
 import { errorHandler } from "./common/middleware/errorHandler.js";
 
 const app = express();
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 app.get("/api/health", (_req, res) => {
     return res.status(200).json({
@@ -28,6 +32,8 @@ app.use("/api/projects", columnRouter);
 app.use("/api/projects", taskRouter);
 
 app.use("/api/projects", taskAssigneeRouter);
+
+app.use("/api/projects", boardRouter);
 
 app.use(errorHandler);
 

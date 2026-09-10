@@ -1,6 +1,6 @@
 import type { RequestHandler } from "express";
 import type { ProjectIdParams } from "../projects/project.schema.js";
-import type { CreateTaskInput, MoveTaskInput, TaskIdParams, UpdateTaskInput } from "./task.schema.js";
+import type { CreateTaskInput, MoveTaskInput, TaskIdParams, TaskQueryInput, UpdateTaskInput } from "./task.schema.js";
 import { createTask, deleteProjectTask, getProjectTask, getProjectTasks, moveTask, updateTask } from "./task.service.js";
 import { broadcastToProject } from "../../websocket/websocket.rooms.js";
 
@@ -37,8 +37,9 @@ export const createTaskController: RequestHandler = async (req, res) => {
 export const getProjectTasksController: RequestHandler = async (req, res) => {
     const currentUserId = res.locals.userId;
     const { projectId } = req.params as ProjectIdParams;
+    const query = res.locals.query as TaskQueryInput;
 
-    const tasks = await getProjectTasks(currentUserId, projectId);
+    const tasks = await getProjectTasks(currentUserId, projectId, query);
 
     return res.status(200).json({
         data: tasks,
