@@ -2,6 +2,7 @@ import type { RequestHandler } from "express";
 import type { LoginInput, RegisterInput } from "./auth.schema.js";
 import { getCurrentUser, loginUser, refreshAccessToken, registerUser } from "./auth.service.js";
 import { AppError } from "../../common/errors/AppError.js";
+import { logoutSession } from "./refreshToken.service.js";
 
 export const registerController: RequestHandler = async (req, res) => {
     const data = req.body as RegisterInput;
@@ -51,4 +52,16 @@ export const refreshController: RequestHandler = async (req, res) => {
             accessToken,
         },
     });
+}
+
+export const logoutController: RequestHandler = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken) {
+        await logoutSession(refreshToken);
+    }
+
+    res.clearCookie("refreshToken", { httpOnly: true, secure: false, sameSite: "lax", path: "/api/auth" });
+
+    return res.status(204).send();
 }

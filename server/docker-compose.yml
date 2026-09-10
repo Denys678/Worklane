@@ -1,4 +1,25 @@
 services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskflow-api
+    restart: unless-stopped
+
+    env_file:
+      - .env
+
+    environment:
+      PORT: 5001
+      DATABASE_URL: postgresql://taskflow_user:taskflow_password@db:5432/taskflow?schema=public
+
+    ports:
+      - "5001:5001"
+
+    depends_on:
+      db:
+        condition: service_healthy
+
   db:
     image: postgres:16-alpine
     container_name: taskflow-postgres
