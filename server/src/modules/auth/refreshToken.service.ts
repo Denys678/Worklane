@@ -48,3 +48,13 @@ export async function refreshSession(rawToken: string): Promise<string> {
 
     return currentRefreshToken.userId;
 }
+
+export async function logoutSession(rawToken: string): Promise<void> {
+    const tokenHash = hashRefreshToken(rawToken);
+
+    await prisma.refreshToken.deleteMany({
+        where: {
+            tokenHash,
+        },
+    });
+}
