@@ -7,7 +7,7 @@ import taskRouter from "./modules/tasks/task.routes.js";
 import taskAssigneeRouter from "./modules/taskAssignees/taskAssignees.routes.js";
 import boardRouter from "./modules/board/board.route.js";
 import cookieParser from "cookie-parser";
-import { errorHandler } from "./common/middleware/errorHandler.js";
+import { errorHandler } from "./common/middleware/errorhandler.js";
 
 const app = express();
 
