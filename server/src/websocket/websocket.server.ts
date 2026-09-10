@@ -8,6 +8,7 @@ import { joinProjectRoom, leaveProjectRoom, removeSocketFromRooms } from "./webs
 
 type ClientState = {
     userId: string | null;
+    isAlive: boolean;
 };
 
 export function createWebSocketServer(server: Server) {
@@ -15,7 +16,7 @@ export function createWebSocketServer(server: Server) {
     const clients = new Map<WebSocket, ClientState>();
 
     wss.on("connection", (socket) => {
-        clients.set(socket, { userId: null });
+        clients.set(socket, { userId: null, isAlive: true });
 
         console.log("WebSocket client connected");
 
@@ -103,7 +104,7 @@ export function createWebSocketServer(server: Server) {
                             break;
                         }
 
-                        joinProjectRoom(projectId, socket);
+                        joinProjectRoom(projectId, socket, client.userId);
 
                         console.log(
                             `WebSocket subscribed to project: ${projectId}`,
@@ -150,6 +151,25 @@ export function createWebSocketServer(server: Server) {
                 reason.toString(),
             );
         });
+
+        socket.on("pong", () => {
+            client.isAlive = true;
+        });
+    });
+
+    const heartbeat = setInterval(() => {
+        for(const [ socket, clientState ] of clients) {
+            if (clientState.isAlive) {
+                clientState.isAlive = false;
+                socket.ping();
+            } else {
+                socket.terminate();
+            }
+        }
+    }, 30000);
+
+    wss.on("close", () => {
+        clearInterval(heartbeat);
     });
 
     return wss;

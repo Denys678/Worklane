@@ -184,8 +184,8 @@ export async function updateProjectMemberRole(input: UpdateProjectMemberRoleInpu
     });
 }
 
-export async function deleteProjectMember(currentUserId: string, memberId: string, projectId: string): Promise<void> {
-    await prisma.$transaction(async (tx) => {
+export async function deleteProjectMember(currentUserId: string, memberId: string, projectId: string): Promise<string> {
+    return prisma.$transaction(async (tx) => {
         const currentMembership = await tx.projectMember.findFirst({
             where: {
                 userId: currentUserId,
@@ -208,6 +208,7 @@ export async function deleteProjectMember(currentUserId: string, memberId: strin
             select: {
                 id: true,
                 role: true,
+                userId: true,
             },
         });
 
@@ -241,5 +242,7 @@ export async function deleteProjectMember(currentUserId: string, memberId: strin
                 id: targetMember.id,
             },
         });
+
+        return targetMember.userId;
     });
 }

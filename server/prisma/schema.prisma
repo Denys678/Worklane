@@ -32,6 +32,8 @@ model User {
   memberships  ProjectMember[]
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
+
+  refreshTokens RefreshToken[]
 }
 
 model Project {
@@ -97,4 +99,16 @@ model TaskAssignee {
 
   @@id([taskId, projectMemberId])
   @@index([projectMemberId])
+}
+
+model RefreshToken {
+  id            String          @id @default(uuid())
+  tokenHash     String          @unique
+  userId        String
+  expiresAt     DateTime
+  createdAt     DateTime        @default(now())
+
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

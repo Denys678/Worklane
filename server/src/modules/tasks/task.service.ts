@@ -1,6 +1,6 @@
 import { AppError } from "../../common/errors/AppError.js";
 import prisma from "../../lib/prisma.js";
-import type { CreateTaskInput, MoveTaskInput, UpdateTaskInput } from "./task.schema.js";
+import type { CreateTaskInput, MoveTaskInput, TaskQueryInput, UpdateTaskInput } from "./task.schema.js";
 
 export async function createTask(input: CreateTaskInput, currentUserId: string, projectId: string) {
     const result = await prisma.$transaction(async (tx) => {
@@ -77,7 +77,7 @@ export async function createTask(input: CreateTaskInput, currentUserId: string, 
     return result;
 }
 
-export async function getProjectTasks(currentUserId: string, projectId: string) {
+export async function getProjectTasks(currentUserId: string, projectId: string, query: TaskQueryInput) {
     const currentMembership = await prisma.projectMember.findFirst({
         where: {
             userId: currentUserId,
@@ -97,6 +97,39 @@ export async function getProjectTasks(currentUserId: string, projectId: string) 
             column: {
                 projectId,
             },
+
+            ...(query.priority !== undefined && {
+                priority: query.priority,
+            }),
+
+            ...(query.columnId !== undefined && {
+                columnId: query.columnId,
+            }),
+
+            ...(query.projectMemberId !== undefined && {
+                assignees: {
+                    some: {
+                        projectMemberId: query.projectMemberId,
+                    },
+                },
+            }),
+
+            ...(query.search !== undefined && {
+                OR: [
+                    {
+                        title: {
+                            contains: query.search,
+                            mode: "insensitive",
+                        },
+                    },
+                    {
+                        description: {
+                            contains: query.search,
+                            mode: "insensitive",
+                        },
+                    },
+                ],
+            }),
         },
         orderBy: [
             {
