@@ -3,6 +3,7 @@
 import { useAuth } from "@/app/contexts/AuthContext";
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { LogoutButton } from "./LogoutButton";
 
 export function LoginForm() {
     const [email, setEmail] = useState("");
@@ -59,7 +60,10 @@ export function LoginForm() {
             {isAuthLoading ? (
                 <p>Checking session...</p>
             ): user ? (
-                <p>{user.name}</p>
+                <>
+                    <p>{user.name}</p>
+                    <LogoutButton />
+                </>
             ) : (
                 <p>Not authenticated</p>
             )}
