@@ -2,15 +2,11 @@
 
 import { useAuth } from "@/app/contexts/AuthContext";
 import { useEffect, useState } from "react";
+import { CreateColumnForm } from "./CreateColumnForm";
+import type { BoardColumn } from "./types";
 
 type BoardViewProps = {
     projectId: string;
-}
-
-type BoardColumn = {
-    id: string;
-    name: string;
-    position: number;
 }
 
 type Board = {
@@ -27,12 +23,23 @@ export function BoardView({ projectId }: BoardViewProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
+    function handleColumnCreated(newColumn: BoardColumn) {
+        setBoard((prev) => {
+            if (!prev) return prev;
+
+            return {
+                ...prev,
+                columns: [...prev.columns, newColumn],
+            };
+        });
+    }
+
 
     useEffect(() => {
-        if(!accessToken) {
+        if (!accessToken) {
             return;
         }
-        
+
         async function getBoardData() {
             setIsLoading(true);
             setError("");
@@ -45,7 +52,7 @@ export function BoardView({ projectId }: BoardViewProps) {
                     }
                 });
 
-                if(!response.ok) {
+                if (!response.ok) {
                     setError("Failed to load the board");
                     return;
                 }
@@ -74,7 +81,7 @@ export function BoardView({ projectId }: BoardViewProps) {
     if (board === null) {
         return <p>There is no board</p>;
     }
-    
+
     return (
         <section>
             <h1>{board.name}</h1>
@@ -85,6 +92,8 @@ export function BoardView({ projectId }: BoardViewProps) {
             {board.columns.map((column) => {
                 return <p key={column.id}>{column.name}</p>
             })}
+
+            <CreateColumnForm projectId={projectId} onColumnCreated={handleColumnCreated} />
         </section>
     )
 }
