@@ -2,16 +2,48 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 
 export function RegisterForm() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const router = useRouter();
+
+    async function handleSubmit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        setError("");
+        setIsLoading(true);
 
-        console.log(name, email, password);
+        try{
+            const response = await fetch("http://localhost:5001/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name,
+                    email,
+                    password, 
+                }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setError(data.message);
+                return;
+            }
+
+            router.replace("/login");
+        } catch {
+            setError("Unable to connect to server");
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     return (
@@ -44,11 +76,15 @@ export function RegisterForm() {
                     className="w-full outline-none"
                 />
             </fieldset>
+                        {error && (
+                <p className="text-center font-semibold text-red-900">{error}</p>
+            )}
             <button 
                 type="submit"
                 className="text-white text-[18px] bg-zinc-900 rounded-md py-4 px-12 hover:bg-zinc-800 cursor-pointer"
+                disabled={isLoading}
             >
-                Register</button>
+                {isLoading ? "Registering..." : "Register"}</button>
         </form>
     )
 }

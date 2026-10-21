@@ -30,6 +30,7 @@ type MeResponse = {
 type AuthContextValue = {
     user: User | null;
     login: (email: string, password: string) => Promise<void>;
+    logout: () => Promise<void>;
     accessToken: string | null;
     isAuthLoading: boolean;
 }
@@ -70,6 +71,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setAccessToken(data.data.accessToken);
     }
 
+    async function logout() {
+        const response = await fetch("http://localhost:5001/api/auth/logout", {
+            method: "POST",
+            credentials: "include",
+        });
+
+        if (!response.ok) {
+            throw new Error("Logout failed");
+        }
+
+        setAccessToken(null);
+        setUser(null);
+    }
+
     async function refreshSession() {
         const refreshResponse = await fetch("http://localhost:5001/api/auth/refresh",
             {
@@ -78,7 +93,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
             }
         );
 
-        console.log(refreshResponse.status);
         if (!refreshResponse.ok) {
             if (refreshResponse.status === 401) {
                 setUser(null);
@@ -136,7 +150,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }, []);
 
     return (
-        <AuthContext value={{ user, accessToken, isAuthLoading, login }}>
+        <AuthContext value={{ user, accessToken, isAuthLoading, login, logout }}>
             {children}
         </AuthContext>
     );
