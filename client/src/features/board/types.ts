@@ -5,9 +5,14 @@ export type BoardColumnType = {
     tasks: BoardTask[];
 };
 
+export type TaskPriorityType = "LOW" | "MEDIUM" | "HIGH";
+
 export type BoardTask = {
     id: string;
     title: string;
+    description: string | null;
+    priority: TaskPriority;
+    dueDate: string | null;
     position: number;
     columnId: string;
 };

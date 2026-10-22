@@ -1,3 +1,4 @@
+import { TaskCard } from "./TaskCard";
 import type { BoardColumnType } from "./types"
 
 type BoardColumnProps = {
@@ -14,7 +15,7 @@ export function BoardColumn({ column }: BoardColumnProps) {
             )}
 
             {column.tasks.map((task) => {
-                return <p key={task.id}>{task.title}</p>
+                return <TaskCard key={task.id} task={task} />
             })}
         </section>
     )
