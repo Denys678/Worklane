@@ -3,7 +3,9 @@
 import { useAuth } from "@/app/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { CreateColumnForm } from "./CreateColumnForm";
-import type { BoardColumn } from "./types";
+import type { BoardColumnType, BoardTask } from "./types";
+import { BoardColumn } from "./BoardColumn";
+import { CreateTaskForm } from "./CreateTaskForm";
 
 type BoardViewProps = {
     projectId: string;
@@ -12,7 +14,7 @@ type BoardViewProps = {
 type Board = {
     id: string;
     name: string;
-    columns: BoardColumn[];
+    columns: BoardColumnType[];
 }
 
 export function BoardView({ projectId }: BoardViewProps) {
@@ -23,7 +25,7 @@ export function BoardView({ projectId }: BoardViewProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
-    function handleColumnCreated(newColumn: BoardColumn) {
+    function handleColumnCreated(newColumn: BoardColumnType) {
         setBoard((prev) => {
             if (!prev) return prev;
 
@@ -31,6 +33,22 @@ export function BoardView({ projectId }: BoardViewProps) {
                 ...prev,
                 columns: [...prev.columns, newColumn],
             };
+        });
+    }
+
+    function handleTaskCreated(newTask: BoardTask) {
+        setBoard((prev) => {
+            if (!prev) return prev;
+
+            const updatedColumns = prev.columns.map((column) => {
+                if (column.id !== newTask.columnId) {
+                    return column;
+                }
+
+                return { ...column, tasks: [...column.tasks, newTask] };
+            });
+
+            return { ...prev, columns: updatedColumns };
         });
     }
 
@@ -84,14 +102,24 @@ export function BoardView({ projectId }: BoardViewProps) {
 
     return (
         <section>
-            <h1>{board.name}</h1>
+            <h1 className="text-4xl font-semibold ml-10 mt-10 mb-15">{board.name}</h1>
             {board.columns.length === 0 && (
                 <p>No columns yet</p>
             )}
 
-            {board.columns.map((column) => {
-                return <p key={column.id}>{column.name}</p>
-            })}
+            <div className="flex flex-row justify-center gap-4">
+                {board.columns.map((column) => (
+                    <div key={column.id} className="flex flex-col gap-4">
+                        <BoardColumn column={column} />
+
+                        <CreateTaskForm
+                            columnId={column.id}
+                            projectId={projectId}
+                            onTaskCreated={handleTaskCreated}
+                        />
+                    </div>
+                ))}
+            </div>
 
             <CreateColumnForm projectId={projectId} onColumnCreated={handleColumnCreated} />
         </section>

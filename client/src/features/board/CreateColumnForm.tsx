@@ -2,11 +2,11 @@
 
 import { useAuth } from "@/app/contexts/AuthContext";
 import { type FormEvent, useState } from "react";
-import type { BoardColumn } from "./types";
+import type { BoardColumnType } from "./types";
 
 type CreateColumnFormProps = {
     projectId: string;
-    onColumnCreated: (column: BoardColumn) => void;
+    onColumnCreated: (column: BoardColumnType) => void;
 };
 
 export function CreateColumnForm({ projectId, onColumnCreated }: CreateColumnFormProps) {
@@ -41,7 +41,7 @@ export function CreateColumnForm({ projectId, onColumnCreated }: CreateColumnFor
 
             const data = await response.json();
 
-            onColumnCreated(data.data);
+            onColumnCreated({...data.data, tasks: []});
             setName("");
         } catch {
             setError("Server is unreachable");
