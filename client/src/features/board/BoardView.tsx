@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { CreateColumnForm } from "./CreateColumnForm";
 import type { BoardColumnType, BoardTask } from "./types";
 import { BoardColumn } from "./BoardColumn";
+import { TaskDetailsModal } from "./TaskDetailsModal";
 
 type BoardViewProps = {
     projectId: string;
@@ -23,6 +24,8 @@ export function BoardView({ projectId }: BoardViewProps) {
 
     const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
     const [isColumnFormOpen, setIsColumnFormOpen] = useState(false);
+
+    const [selectedTask, setSelectedTask] = useState<BoardTask | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
@@ -119,6 +122,7 @@ export function BoardView({ projectId }: BoardViewProps) {
                         column={column}
                         projectId={projectId}
                         isFormOpen={activeColumnId === column.id}
+                        onTaskSelected={setSelectedTask}
                         onTaskCreated={handleTaskCreated}
                         onToggleForm={() => {
                             setActiveColumnId((prev) => {
@@ -141,6 +145,10 @@ export function BoardView({ projectId }: BoardViewProps) {
                     )}
                 </div>
             </div>
+
+            {selectedTask !== null && (
+                <TaskDetailsModal task={selectedTask} onClose={() => {setSelectedTask(null)}}/>
+            )}
 
         </section>
     )

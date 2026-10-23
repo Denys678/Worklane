@@ -6,11 +6,12 @@ type BoardColumnProps = {
     column: BoardColumnType;
     projectId: string;
     isFormOpen: boolean;
+    onTaskSelected: (task: BoardTask) => void;
     onTaskCreated: (task: BoardTask) => void;
     onToggleForm: () => void;
 }
 
-export function BoardColumn({ column, projectId, isFormOpen, onTaskCreated, onToggleForm }: BoardColumnProps) {
+export function BoardColumn({ column, projectId, isFormOpen, onTaskCreated, onToggleForm, onTaskSelected }: BoardColumnProps) {
     return (
         <section className="w-72 shrink-0 rounded-md bg-zinc-200 p-3">
             <div className="mb-4 flex items-center justify-between">
@@ -24,7 +25,7 @@ export function BoardColumn({ column, projectId, isFormOpen, onTaskCreated, onTo
 
             <div className="flex flex-col gap-4">
                 {column.tasks.map((task) => {
-                    return <TaskCard key={task.id} task={task} />
+                    return <TaskCard key={task.id} task={task} onTaskSelected={onTaskSelected}/>
                 })}
             </div>
 
