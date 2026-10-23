@@ -30,7 +30,7 @@ export function CreateColumnForm({ projectId, onColumnCreated }: CreateColumnFor
                     Authorization: `Bearer ${accessToken}`,
                 },
                 body: JSON.stringify({
-                    name,
+                    name: name.trim(),
                 }),
             });
 
@@ -51,8 +51,7 @@ export function CreateColumnForm({ projectId, onColumnCreated }: CreateColumnFor
     }
 
      return (
-        <form className="flex w-full max-w-md flex-col gap-6" onSubmit={handleSubmit}>
-            <h2 className="text-center text-4xl font-semibold">Create column</h2>
+        <form className="flex w-full max-w-md flex-col gap-4 border rounded-md p-4 mt-4" onSubmit={handleSubmit}>
             <fieldset className="w-full rounded-md border p-2 focus-within:border-zinc-900">
                 <legend className="px-1 text-sm">
                     Name
@@ -63,13 +62,15 @@ export function CreateColumnForm({ projectId, onColumnCreated }: CreateColumnFor
                     name="name"
                     value={name}
                     required
+                    minLength={2}
+                    maxLength={50}
                     onChange={(event) => setName(event.target.value)}
                     className="w-full outline-none"
                 />
             </fieldset>
             <button
                 type="submit"
-                className="text-white text-[18px] bg-zinc-900 rounded-md py-4 px-12 hover:bg-zinc-800 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60"
+                className="w-full rounded-md bg-zinc-900 px-3 py-2 text-sm text-white hover:bg-zinc-800"
                 disabled={isLoading}
             >
                 {isLoading ? "Creating ..." : "Create"}

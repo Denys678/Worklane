@@ -1,22 +1,30 @@
-import type { BoardTask } from "./types";
+import type { BoardTask, TaskPriorityType } from "./types";
 
 type TaskCardProps = {
     task: BoardTask;
 }
 
+const priorityStyles: Record<TaskPriorityType, string> = {
+    LOW: "bg-green-100 text-green-800",
+    MEDIUM: "bg-yellow-100 text-yellow-800",
+    HIGH: "bg-red-100 text-red-800",
+};
+
 export function TaskCard({ task }: TaskCardProps) {
     return (
-        <section className="border rounded-md p-3 m-2 mb-4 text-white bg-zinc-800">
-            <h4 className="font-semibold text-lg">{task.title}</h4>
-            <p>Priority: {task.priority}</p>
-            {task.description && (
+        <section className="flex flex-col border rounded-md p-3 text-white bg-zinc-800 gap-4">
+            <p className="text-sm font-semibold whitespace-nowrap">{task.title}</p>
+            <div className="flex items-center justify-between">
+                <span className={`rounded-md px-2 py-1 text-xs font-medium ${priorityStyles[task.priority]}`} >{task.priority}</span>
+                {task.dueDate && (
                 <p>
-                    {task.description}
+                    Due: {new Date(task.dueDate).toLocaleDateString("uk-UA")}
                 </p>
             )}
-            {task.dueDate && (
-                <p>
-                    Due date: {new Date(task.dueDate).toLocaleDateString("uk-UA")}
+            </div>
+            {task.description && (
+                <p className="line-clamp-2">
+                    {task.description}
                 </p>
             )}
         </section>

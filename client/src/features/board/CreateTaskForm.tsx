@@ -64,7 +64,6 @@ export function CreateTaskForm({ projectId, columnId, onTaskCreated }: CreateTas
 
     return (
         <form className="flex w-full max-w-md flex-col gap-2" onSubmit={handleSubmit}>
-            <h2 className="text-center font-semibold">Create task</h2>
             <fieldset className="w-full rounded-md border p-2 focus-within:border-zinc-900">
                 <legend className="px-1 text-sm">
                     Name

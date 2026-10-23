@@ -11,7 +11,7 @@ export type BoardTask = {
     id: string;
     title: string;
     description: string | null;
-    priority: TaskPriority;
+    priority: TaskPriorityType;
     dueDate: string | null;
     position: number;
     columnId: string;

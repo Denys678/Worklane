@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { CreateColumnForm } from "./CreateColumnForm";
 import type { BoardColumnType, BoardTask } from "./types";
 import { BoardColumn } from "./BoardColumn";
-import { CreateTaskForm } from "./CreateTaskForm";
 
 type BoardViewProps = {
     projectId: string;
@@ -22,6 +21,9 @@ export function BoardView({ projectId }: BoardViewProps) {
 
     const [board, setBoard] = useState<Board | null>(null);
 
+    const [activeColumnId, setActiveColumnId] = useState<string | null>(null);
+    const [isColumnFormOpen, setIsColumnFormOpen] = useState(false);
+
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState("");
 
@@ -34,6 +36,7 @@ export function BoardView({ projectId }: BoardViewProps) {
                 columns: [...prev.columns, newColumn],
             };
         });
+        setIsColumnFormOpen(false);
     }
 
     function handleTaskCreated(newTask: BoardTask) {
@@ -50,6 +53,8 @@ export function BoardView({ projectId }: BoardViewProps) {
 
             return { ...prev, columns: updatedColumns };
         });
+
+        setActiveColumnId(null);
     }
 
 
@@ -107,21 +112,36 @@ export function BoardView({ projectId }: BoardViewProps) {
                 <p>No columns yet</p>
             )}
 
-            <div className="flex flex-row justify-center gap-4">
+            <div className="flex w-full min-w-0 items-start gap-4 overflow-x-auto p-4">
                 {board.columns.map((column) => (
-                    <div key={column.id} className="flex flex-col gap-4">
-                        <BoardColumn column={column} />
-
-                        <CreateTaskForm
-                            columnId={column.id}
-                            projectId={projectId}
-                            onTaskCreated={handleTaskCreated}
-                        />
-                    </div>
+                    <BoardColumn
+                        key={column.id}
+                        column={column}
+                        projectId={projectId}
+                        isFormOpen={activeColumnId === column.id}
+                        onTaskCreated={handleTaskCreated}
+                        onToggleForm={() => {
+                            setActiveColumnId((prev) => {
+                                return prev === column.id ? null : column.id;
+                            });
+                        }}
+                    />
                 ))}
+                <div className="w-72 shrink-0">
+                    <button
+                        type="button"
+                        className="w-full rounded-md border border-dashed p-3 text-center hover:bg-zinc-100"
+                        onClick={() => setIsColumnFormOpen((prev) => !prev)}
+                    >
+                        {isColumnFormOpen ? "Cancel" : "+ Add column"}
+                    </button>
+
+                    {isColumnFormOpen && (
+                        <CreateColumnForm projectId={projectId} onColumnCreated={handleColumnCreated} />
+                    )}
+                </div>
             </div>
 
-            <CreateColumnForm projectId={projectId} onColumnCreated={handleColumnCreated} />
         </section>
     )
 }
